@@ -9,8 +9,8 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/object"
 )
 
-const MAX_DAYS = 182
-const MAX_WEEKS = 24
+const MAX_DAYS = 180
+const MAX_WEEKS = 25
 const OUT_OF_RANGE = 9999
 
 // Read commits from saved repos and print graph
@@ -87,6 +87,7 @@ func printCells(weeks map[int]column) {
 
 			printCell(0, false)
 		}
+		fmt.Println()
 	}
 }
 
@@ -94,14 +95,14 @@ func printCells(weeks map[int]column) {
 func printMonths() {
 	week := resetTime(time.Now()).Add(-(MAX_DAYS * time.Hour * 24))
 	month := week.Month()
-	fmt.Print("      ")
+	fmt.Printf("             ")
 
 	for {
 		if week.Month() != month {
 			fmt.Printf("%s ", week.Month().String()[:3])
 			month = week.Month()
 		} else {
-			fmt.Print("    ")
+			fmt.Printf("    ")
 		}
 		week = week.Add(7 * time.Hour * 24)
 		if week.After(time.Now()) {
@@ -155,7 +156,7 @@ func printDayCol(day int) {
 		out = " Fri "
 	}
 
-	fmt.Println(out)
+	fmt.Print(out)
 }
 
 // Read saved repos and get commits map

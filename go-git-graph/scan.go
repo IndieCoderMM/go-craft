@@ -20,6 +20,21 @@ func scan(path string) {
 	fmt.Println("\n\nRepos saved successfully")
 }
 
+// Reset ~/.gogitgraph file
+func clearGraph() {
+	dotFile := getDotFilePath()
+	removeFile(dotFile)
+	fmt.Println("\nRepos cleared successfully")
+}
+
+// Remove a given file
+func removeFile(path string) {
+	err := os.Remove(path)
+	if err != nil {
+		panic(err)
+	}
+}
+
 // Append new repos into a file
 func addNewRepos(path string, repos []string) {
 	existingRepos := readFile(path)
