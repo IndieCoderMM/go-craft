@@ -12,6 +12,15 @@ It scans a specified folder for local Git repositories and graphs contributions 
 - **Clear Histories**: Option to clear contribution histories.
 - **View/Save Config**: Manage user email configuration for contribution tracking.
 
+### Options:
+
+- `-scan <folder>`: Save repositories inside a folder into `~/.gogitgraph`.
+- `-email <email>`: Set your email for contribution tracking.
+- `-clean`: Clear saved repositories. 
+- `-list`: List all registered repositories.
+- `-config`: Show current configuration.
+
+
 ## Usage
 
 1. **Build the Program**: 
@@ -33,15 +42,7 @@ go build -o ggg.exe
 ./ggg.exe
 ```
 
-### Options:
-
-- `-scan <folder>`: Specify a folder to scan for Git repositories.
-- `-email <email>`: Set your email for contribution tracking.
-- `-clean`: Clear repository contribution histories.
-- `-list`: List all registered repositories.
-- `-config`: Show current configuration.
-
 ### Resources
 
-- [Tutorial](https://flaviocopes.com/go-git-contributions/)
-- [Go-Git](https://github.com/go-git/go-git)
+- Tutorial: [Visualize your local Git contributions with Go](https://flaviocopes.com/go-git-contributions/)
+- Package: [Go-Git](https://github.com/go-git/go-git)
