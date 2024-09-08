@@ -15,7 +15,11 @@ const OUT_OF_RANGE = 9999
 
 // Read commits from saved repos and print graph
 func graph(email string) {
-	commits := processRepos(email)
+	fmt.Printf("👤 GitGraph User: %s\n", email)
+	commits, err := processRepos(email)
+	if err != nil {
+		panic(err)
+	}
 	printGraph(commits)
 }
 
@@ -160,9 +164,15 @@ func printDayCol(day int) {
 }
 
 // Read saved repos and get commits map
-func processRepos(email string) map[int]int {
+func processRepos(email string) (map[int]int, error) {
 	dotFile := getDotFilePath()
-	repos := readFile(dotFile)
+	repos := readRepoOnly(dotFile)
+
+	if len(repos) == 0 {
+		fmt.Println("🔍 Please scan git repos with '-scan folder'")
+		panic("No repos found")
+	}
+
 	totalDays := MAX_DAYS
 
 	commits := make(map[int]int, totalDays)
@@ -174,7 +184,7 @@ func processRepos(email string) map[int]int {
 		commits = getCommits(email, path, commits)
 	}
 
-	return commits
+	return commits, nil
 }
 
 // Get commits map from a repo

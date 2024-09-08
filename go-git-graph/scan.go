@@ -11,20 +11,35 @@ import (
 )
 
 // Save all git repos within a folder into ~/.gogitgraph file
-func scan(path string) {
-	fmt.Println("Repo found:")
-	repos := getGitFolders(path)
+func scan(path string, ignoreFolders string) {
+	fmt.Println("🔍 Scanning repos...")
+	repos := getGitFolders(path, strings.Split(ignoreFolders, ","))
 	dotFile := getDotFilePath()
 
 	addNewRepos(dotFile, repos)
-	fmt.Println("\n\nRepos saved successfully")
+	fmt.Printf("\n\n💾 %d Repos registered", len(repos))
+}
+
+// List all registerd repos
+func listRepos() {
+	dotFile := getDotFilePath()
+	repos := readRepoOnly(dotFile)
+
+	if len(repos) == 0 {
+		fmt.Println("🗂 No repos registered")
+	} else {
+		fmt.Println("🗂 Registered repos:")
+		for _, repo := range repos {
+			fmt.Println(repo)
+		}
+	}
 }
 
 // Reset ~/.gogitgraph file
 func clearGraph() {
 	dotFile := getDotFilePath()
 	removeFile(dotFile)
-	fmt.Println("\nRepos cleared successfully")
+	fmt.Println("\n 🗑 All repos cleared")
 }
 
 // Remove a given file
@@ -46,6 +61,78 @@ func addNewRepos(path string, repos []string) {
 func saveRepos(repos []string, path string) {
 	content := strings.Join(repos, "\n")
 	os.WriteFile(path, []byte(content), 0755)
+}
+
+// Save default configs into ~/.gogitgraph file
+func saveConfigs(email string) {
+	dotFile := getDotFilePath()
+
+	// First line is email
+	// Second line is ignore folders
+	// TODO: Add configuration for ignore folders
+	var ignoreFolders = []string{"node_modules"}
+
+	configs := []string{"#email:" + email, "#ignore:" + strings.Join(ignoreFolders, ",")}
+	repos := readRepoOnly(dotFile)
+	saveRepos(append(configs, repos...), dotFile)
+}
+
+// Show current configs
+func getConfigs(print bool) (map[string]string, error) {
+	dotFile := getDotFilePath()
+	lines := readFile(dotFile)
+	configs := make(map[string]string)
+
+	if len(lines) == 0 {
+		fmt.Println("📝 No configs found")
+		panic("🛠 Please set your email with '-email'")
+	}
+
+	for _, line := range lines {
+		typ, value := parseConfig(line)
+
+		configs[typ] = value
+
+		if !print {
+			continue
+		}
+
+		if typ == "email" {
+			fmt.Println("📧 Email:", value)
+		} else if typ == "ignore" {
+			fmt.Println("🚫 Ignore folders:", value)
+		}
+	}
+
+	return configs, nil
+}
+
+// Parse config line
+func parseConfig(line string) (string, string) {
+	if line[0] != '#' {
+		return "", ""
+	}
+
+	parts := strings.Split(line, ":")
+	if len(parts) < 2 {
+		return "", ""
+	}
+
+	return parts[0][1:], parts[1]
+}
+
+func readRepoOnly(path string) []string {
+	lines := readFile(path)
+	repos := []string{}
+
+	for _, line := range lines {
+		if line[0] == '#' {
+			continue
+		}
+		repos = append(repos, line)
+	}
+
+	return repos
 }
 
 // Read file content into a slice
@@ -113,12 +200,12 @@ func getDotFilePath() string {
 }
 
 // Get path for all git repos within a folder
-func getGitFolders(folder string) []string {
-	return scanGitFolders(make([]string, 0), folder)
+func getGitFolders(folder string, ignoreFolders []string) []string {
+	return scanGitFolders(make([]string, 0), folder, ignoreFolders)
 }
 
 // Get paths for folder containing .git
-func scanGitFolders(folders []string, folder string) []string {
+func scanGitFolders(folders []string, folder string, ignoreFolders []string) []string {
 	folder = strings.TrimSuffix(folder, "/")
 
 	f, err := os.Open(folder)
@@ -147,11 +234,11 @@ func scanGitFolders(folders []string, folder string) []string {
 			continue
 		}
 
-		if file.Name() == "node_modules" {
+		if includes(ignoreFolders, file.Name()) {
 			continue
 		}
 
-		folders = scanGitFolders(folders, path)
+		folders = scanGitFolders(folders, path, ignoreFolders)
 	}
 
 	return folders
